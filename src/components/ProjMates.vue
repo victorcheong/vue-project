@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <head>
+      <title>Project Mates</title>
+    </head>
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <table>
       <tr>
@@ -29,6 +32,7 @@
     <br>
     <div style="border-width:1px; border-style:solid; height:100px; display:block; background-size: 100% 100%;">   
     Hello
+    {{module}}
     </div>
     <table>
       <tr>
@@ -38,10 +42,9 @@
           </label>
         </td>
         <td style="padding-left: 20px;">
-          <select id="modules" v-model="module">
-            <option value="bt3103">BT3103</option>
-            <option value="is3103">IS3103</option>
-            <option value="bt3102">BT3102</option>
+          <select id="modules" v-model="module" style="width:auto">
+            <option value = '' disabled>Please select a module</option>
+            <option v-for='mod in modules' v-bind:key = mod.id>{{mod.id}}</option>
           </select>
         </td>
       </tr>
@@ -64,20 +67,17 @@
         box-shadow: 1px 0.5px 1px 2.5px grey;">
           <div v-show='currPage== "Students not in any group"' style="padding-right: 120px;">
             <h1>Students with No Group:</h1>
-            <div v-show="module=='bt3103'">
+            <div v-show="module=='BT3103'">
               <ol>
-                <li>
-                  Tom
+                <div v-for='mod in modules' v-if='mod.id == module' v-bind:key = mod.id>
+                  <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
+                    {{person}}
+                  </li>
+                </div>
+                <!-- <li v-for='mod in modules' v-bind:key = mod.id v-show="mod.id == module">
+                  {{mod['NoGroup']}}
                   <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Dick
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Harry
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
+                </li> -->
               </ol>
             </div>
             <div v-show="module=='is3103'">
@@ -917,13 +917,15 @@
 </template>
 
 <script>
-
+import database from '../firebase.js'
 export default {
   name: 'App',
   data(){
     return {
+      userInfo:[],
+      modules:[],
       hover:false,
-      module: "bt3103",
+      module: "",
       good: "",
       bad: "",
       loadMore:false,
@@ -1216,7 +1218,37 @@ export default {
     } else {
       this.openBox = true;
     }
+  },
+  fetchData: function() {
+    let item={}
+      //Get all the items from DB
+      database.collection('User Info').get().then((querySnapShot)=>{
+        //Loop through each item
+        querySnapShot.forEach(doc=>{
+            //console.log(doc.id+"==>"+doc.data())
+            item=doc.data()
+            item.show=false
+            item.id=doc.id
+            this.userInfo.push(item)
+        })
+      })
+
+    let currMod={}
+      //Get all the items from DB
+      database.collection('Modules').get().then((querySnapShot)=>{
+        //Loop through each item
+        querySnapShot.forEach(doc=>{
+            //console.log(doc.id+"==>"+doc.data())
+            currMod=doc.data()
+            currMod.show=false
+            currMod.id=doc.id
+            this.modules.push(currMod)
+        })
+      })
   }
+},
+created() {
+  this.fetchData()
 }
 }
 </script>
