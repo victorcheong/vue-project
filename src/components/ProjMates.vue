@@ -97,11 +97,11 @@
               <ul>
                 <div v-for='mod in modules' v-bind:key = mod>
                   <div v-if = 'mod.id == module'>
-                    <div v-for='group in mod' v-bind:key = group>
+                    <div v-for='(group, groupName) in mod' v-bind:key = group>
                       <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
                         <li style="text-align: left; list-style: none;">
                           <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                            <h4>{{group['Group Name']}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
+                            <h4>{{groupName}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
                             <ul style="list-style-type: none">  
                               <div class='group-content'>
                                 <li v-for='person in group["Group Members"]' v-bind:key = person>
@@ -121,11 +121,11 @@
               <ul>
                 <div v-for='mod in modules' v-bind:key = mod>
                   <div v-if = 'mod.id == module'>
-                    <div v-for='group in mod' v-bind:key = group>
+                    <div v-for='(group, groupName) in mod' v-bind:key = group>
                       <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
                         <li style="text-align: left; list-style: none;">
                           <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                            <h4>{{group['Group Name']}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
+                            <h4>{{groupName}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
                             <ul style="list-style-type: none">  
                               <div class='group-content'>
                                 <li v-for='person in group["Group Members"]' v-bind:key = person>
