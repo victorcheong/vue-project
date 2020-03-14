@@ -31,8 +31,7 @@
     <br>
     <br>
     <div style="border-width:1px; border-style:solid; height:100px; display:block; background-size: 100% 100%;">   
-    Hello
-    {{module}}
+    Hello {{module}}
     </div>
     <table>
       <tr>
@@ -54,7 +53,7 @@
         box-shadow: 1px 0.5px 1px 2.5px grey;">
           <h5>Looking for:</h5>
           <ul style="text-align: justify; list-style-type:none">
-            <li><a href="#" v-on:click = 'currPage = "Students not in any group"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Students without Group</span></a></li>
+            <li><a href="#" v-on:click ='currPage = "Students not in any group"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Students without Group</span></a></li>
             <br>
             <li><a href="#" v-on:click='currPage = "Formed Project Groups"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Formed Project Groups</span></a></li>
             <br>
@@ -69,113 +68,79 @@
             <h1>Students with No Group:</h1>
             <div v-show="module=='BT3103'">
               <ol>
-                <div v-for='mod in modules' v-if='mod.id == module' v-bind:key = mod.id>
-                  <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
-                    {{person}}
-                  </li>
+                <div v-for='mod in modules' v-bind:key = mod.id>
+                  <div v-if = 'mod.id == module'>
+                    <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
+                      {{person}}
+                      <a href='https://www.google.com' target="_blank">Profile</a>
+                    </li>
+                  </div>
                 </div>
-                <!-- <li v-for='mod in modules' v-bind:key = mod.id v-show="mod.id == module">
-                  {{mod['NoGroup']}}
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li> -->
               </ol>
             </div>
-            <div v-show="module=='is3103'">
+            <div v-show="module=='IS3103'">
               <ol>
-                <li>
-                  Jeff
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Hardy
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Robert
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-              </ol>
-            </div>
-            <div v-show="module=='bt3102'">
-              <ol>
-                <li>
-                  Edward
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Frankanstein
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
-                <li>
-                  Monster
-                  <a href='https://www.google.com' target="_blank">Profile</a>
-                </li>
+                <div v-for='mod in modules' v-bind:key = mod.id>
+                  <div v-if = 'mod.id == module'>
+                    <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
+                      {{person}}
+                      <a href='https://www.google.com' target="_blank">Profile</a>
+                    </li>
+                  </div>
+                </div>
               </ol>
             </div>
           </div>
           <div v-show='currPage== "Formed Project Groups"' style="padding-right: 120px;">
             <h1 style="text-align: left">Formed Project Groups: </h1>
-            <div v-if="module=='bt3103'">
+            <div v-if="module=='BT3103'">
               <ul>
-                <li style="text-align: left; list-style: none;">
-                  <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                    <h4>Group 6 (5/5)</h4>
-                    <div class='group-content'>
-                      Alan <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Brad <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Charlie <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Dan <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Edward <a href='https://www.google.com' target="_blank">Profile</a>
+                <div v-for='mod in modules' v-bind:key = mod>
+                  <div v-if = 'mod.id == module'>
+                    <div v-for='group in mod' v-bind:key = group>
+                      <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
+                        <li style="text-align: left; list-style: none;">
+                          <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
+                            <h4>{{group['Group Name']}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
+                            <ul style="list-style-type: none">  
+                              <div class='group-content'>
+                                <li v-for='person in group["Group Members"]' v-bind:key = person>
+                                  {{person}} <a href='https://www.google.com' target="_blank">Profile</a>
+                                </li>
+                              </div>
+                            </ul>
+                          </div>
+                        </li>
+                      </div>
                     </div>
                   </div>
-                </li>
+                </div>
               </ul>
             </div>
-            <div v-if="module=='is3103'">
+            <div v-if="module=='IS3103'">
               <ul>
-                <li style="text-align: left; list-style: none;">
-                  <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                    <h4>Group 8 (5/5)</h4>
-                    <div class='group-content'>
-                      King <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Lesley <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Jia Ting <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Kobe Bryant <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Mary <a href='https://www.google.com' target="_blank">Profile</a>
+                <div v-for='mod in modules' v-bind:key = mod>
+                  <div v-if = 'mod.id == module'>
+                    <div v-for='group in mod' v-bind:key = group>
+                      <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
+                        <li style="text-align: left; list-style: none;">
+                          <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
+                            <h4>{{group['Group Name']}} ({{group["Group Members"].length}}/{{group["Group Members"].length}})</h4>
+                            <ul style="list-style-type: none">  
+                              <div class='group-content'>
+                                <li v-for='person in group["Group Members"]' v-bind:key = person>
+                                  {{person}} <a href='https://www.google.com' target="_blank">Profile</a>
+                                </li>
+                              </div>
+                            </ul>
+                          </div>
+                        </li>
+                      </div>
                     </div>
                   </div>
-                </li>
+                </div>
               </ul>
             </div>
-            <div v-if="module=='bt3102'">
-              <ul>
-                <li style="text-align: left;list-style: none;">
-                  <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                    <h4>Group 7 (5/5)</h4>
-                    <div class='group-content'>
-                      Jack <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Jill <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Went <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Up <a href='https://www.google.com' target="_blank">Profile</a>
-                      <br>
-                      Hill <a href='https://www.google.com' target="_blank">Profile</a>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-      
           </div>
           <div v-show='currPage== "Form a new group"'>
             <h1>Form a new group:</h1>
@@ -1358,12 +1323,11 @@ body {
 	display: none;
 	position: absolute;
 	background-color: #f9f9f9;
-	width: 600px;
+	width: auto;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	padding: 12px 16px;
 	z-index: 1;
-	text-align: justify; 
-	text-align-last: justify;
+	text-align: left; 
 }
 
 .modal {
