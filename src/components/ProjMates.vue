@@ -31,7 +31,7 @@
     <br>
     <br>
     <div style="border-width:1px; border-style:solid; height:100px; display:block; background-size: 100% 100%;">   
-    Hello {{module}}
+    Hello {{newGroups}}
     </div>
     <table>
       <tr>
@@ -41,7 +41,7 @@
           </label>
         </td>
         <td style="padding-left: 20px;">
-          <select id="modules" v-model="module" style="width:auto">
+          <select id="modules" v-model="module" style="width:auto" @change="checkNoGroup">
             <option value = '' disabled>Please select a module</option>
             <option v-for='mod in modules' v-bind:key = mod.id>{{mod.id}}</option>
           </select>
@@ -57,7 +57,7 @@
             <br>
             <li><a href="#" v-on:click='currPage = "Formed Project Groups"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Formed Project Groups</span></a></li>
             <br>
-            <li><a href="#" v-on:click='currPage = "Form a new group"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>New Group</span></a></li>
+            <li><a href="#" v-on:click='currPage = "Form a new group"; checkNoGroup' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>New Group</span></a></li>
             <br>
             <li><a href="#" v-on:click='currPage = "Join Existing Groups"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Existing Groups</span></a></li>
           </ul>
@@ -159,17 +159,9 @@
               <br>
               <div style="text-align: left; font-size: 20px">
                 <h6>Add your peers who are without a group:</h6>
-                <select v-show='module=="bt3103"' v-model = 'friend'>
+                <select v-model = 'friend'>
                   <option disabled selected value>Select a peer</option>
-                  <option v-for='fren in bt3103NoGroup' v-bind:key=fren>{{fren}}</option>
-                </select>
-                <select v-show='module=="is3103"' v-model = 'friend'>
-                  <option disabled selected value>Select a peer</option>
-                  <option v-for='fren in is3103NoGroup' v-bind:key=fren>{{fren}}</option>
-                </select>
-                <select v-show='module=="bt3102"' v-model = 'friend'>
-                  <option disabled selected value>Select a peer</option>
-                  <option v-for='fren in bt3102NoGroup' v-bind:key=fren>{{fren}}</option>
+                  <option v-for='fren in noGroup' v-bind:key=fren>{{fren}}</option>
                 </select>
                 <button v-on:click='addFriend()'>Add</button>
                 <br>
@@ -277,7 +269,7 @@
                     <h6>Any comments for your group?</h6><textarea v-model.lazy='newGroup.comment' rows="1" style="resize: none;"></textarea>
                     <br>
                     <br>
-                    <button v-on:click='addGroup'>Submit</button>
+                    <button v-on:click='addGroup()'>Submit</button>
                   </div>
                 </div>
               </div>
@@ -941,33 +933,42 @@ export default {
       skill:'',
       hasNewSkill: false,
       currSkill: '',
-      taken : ["apple", "pancakes", "chicken rice"],
+      taken : [],
       friend:'',
-      bt3103NoGroup: ['Tom', 'Dick', 'Harry'],
-      is3103NoGroup: ['Jeff', 'Hardy', 'Robert'],
-      bt3102NoGroup: ['Edward', 'Frankanstein', 'Monster'],
-      newGroupFormed:{'bt3103':false, 'is3103':false, 'bt3102':false},
+      noGroup: [],
+      newGroupFormed:{},
       newGroup:{module: '', groupName:'', size:2, currGroup:['You'], newSkill: [], comment:'', compatibility:[], 
       memberStatus:['true'], members:['None'], skills:[[]], currMember:1, skills1:[], skills2:[], skills3:[]},
-      newGroups:[],
+      newGroups:{},
       currPage:'Students not in any group',
       showNotif:false
     }
   },
   methods: {
     checkAvailable: function() {
-    var el = this.newGroup.groupName;
-    if(el.length == 0) {
-      this.bad = "Group name must contain at least 1 character.";
-      this.good = "";
-    }
-    else if(this.taken.indexOf(el) >= 0) {
-      this.bad = "This group name is taken. Please choose another one.";
-      this.good = "";
-    } else {
-      this.good = "This group name is available";
-      this.bad = "";
-    }
+      for(var i = 0; i < this.modules.length; i++) {
+        var mod = this.modules[i];
+        for(var group in mod) {
+          if(group != 'NoGroup' && group != 'show' && group != 'id') {
+            this.taken.push(group);
+          }
+        }
+      }
+      var el = this.newGroup.groupName;
+      if(el.length == 0) {
+        this.bad = "Group name must contain at least 1 character.";
+        this.good = "";
+      } else if (el == 'NoGroup' || el == 'show' || el == 'id') {
+        this.bad = 'This group name is not allowed. Please choose another one.';
+        this.good = '';
+      }
+      else if(this.taken.indexOf(el) >= 0) {
+        this.bad = "This group name is taken. Please choose another one.";
+        this.good = "";
+      } else {
+        this.good = "This group name is available";
+        this.bad = "";
+      }
   },
 
   changeText : function() {
@@ -1003,11 +1004,11 @@ export default {
     },
 
     addRemoveSkills: function(index) {
-    if(this.newGroup.skills[index].length > 0) {
-      this.newGroup.members[index] = this.newGroup.skills[index].join(", ");
-    } else {
-      this.newGroup.members[index] = "None";
-    }
+      if(this.newGroup.skills[index].length > 0) {
+        this.newGroup.members[index] = this.newGroup.skills[index].join(", ");
+      } else {
+        this.newGroup.members[index] = "None";
+      }
   },
 
   checkSkill: function() {
@@ -1030,7 +1031,9 @@ export default {
       alert("Please enter a valid group size.");
     } else if(this.newGroup.size == 1) {
       alert("Group size should be at least 2");
-    } else {
+    } else if (this.newGroupFormed[this.module]) {
+      alert("You have already created a group for this module.");
+    }else {
       for(var i = 0; i < this.newGroup.skills.length; i++) {
         if(this.newGroup.skills[i].length == 0) {
           alert("Please choose at least 1 option for team mate " + (i + 1));
@@ -1038,39 +1041,48 @@ export default {
         }
       }
       alert("Your group has been sucessfully created! Click the Join Existing Groups tab to see your group."); 
-      for(var j = 0; j < this.newGroup.skills.length; j++) {
-        var count = 0;
-        for(i = 0; i < this.newGroup.skills[j].length; i++) {
-          var curr = this.newGroup.skills[j][i];
-          if(this.my_skills.indexOf(curr) > -1) {
-            count ++;
-          }
-        }
-        var compatibility = Math.round(parseFloat(count) / this.newGroup.skills[j].length * 100);
-        this.newGroup.module = this.module;
-        this.newGroup.compatibility.push(compatibility);
-      }
-      for(i = 0; i < this.newGroup.currGroup.length; i++) {
-        this.newGroup.skills.push(['apple']);
-      }
-      for(i = 0; i < this.newGroup.skills.length; i++) {
-        var skill = this.newGroup.skills[i];
-        if(this.newGroup.skills1.length < 2) {
-          this.newGroup.skills1.push(skill);
-        }else if(this.newGroup.skills2.length < 2) {
-          this.newGroup.skills2.push(skill);
-        }else {
-          this.newGroup.skills3.push(skill);
-        }
+      // for(var j = 0; j < this.newGroup.skills.length; j++) {
+      //   var count = 0;
+      //   for(i = 0; i < this.newGroup.skills[j].length; i++) {
+      //     var curr = this.newGroup.skills[j][i];
+      //     if(this.my_skills.indexOf(curr) > -1) {
+      //       count ++;
+      //     }
+      //   }
+      //   var compatibility = Math.round(parseFloat(count) / this.newGroup.skills[j].length * 100);
+      //   this.newGroup.module = this.module;
+      //   this.newGroup.compatibility.push(compatibility);
+      // }
+      // for(i = 0; i < this.newGroup.currGroup.length; i++) {
+      //   this.newGroup.skills.push(['apple']);
+      // }
+      // for(i = 0; i < this.newGroup.skills.length; i++) {
+      //   var skill = this.newGroup.skills[i];
+      //   if(this.newGroup.skills1.length < 2) {
+      //     this.newGroup.skills1.push(skill);
+      //   }else if(this.newGroup.skills2.length < 2) {
+      //     this.newGroup.skills2.push(skill);
+      //   }else {
+      //     this.newGroup.skills3.push(skill);
+      //   }
+      // }
+      var newGroupFormat = {};
+      newGroupFormat[this.newGroup.groupName] = {'Group Members':this.newGroup['currGroup'], 'MaxSize': this.newGroup['size'], 'Vacancies':{}};
+      var counter = 1;
+      for(i = 0; i < this.newGroup['members'].length; i++) {
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter] = {};
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter]['FilledOrNot'] = false;
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter]['Skills Required'] = this.newGroup['members'][i]
       }
       this.newGroupFormed[this.module] = true;
-      this.newGroups.push(this.newGroup);
+      this.newGroups[this.module] = this.newGroup;
+      database.collection('Modules').doc(this.module).set(newGroupFormat, {merge: true});
       this.newGroup = {module: '', groupName:'', size:2, currGroup:['You'], newSkill: [], comment:'', compatibility:[], 
       memberStatus:['true'], members:['None'], skills:[[]], currMember:1, skills1:[], skills2:[], skills3:[]};
     }
   },
   addMember: function() {
-    var add = this.newGroup.size - 1;
+    var add = this.newGroup.size - this.newGroup.currGroup.length;
     this.newGroup.memberStatus = ['true'];
     this.newGroup.skills = [[]];
     for(var i = 1; i < add; i++) {
@@ -1177,13 +1189,6 @@ export default {
       this.bt3102_grp1_joinIndex = -1;
     }
   },
-  checkNewGroup:function() {
-    if(this.newGroupFormed[this.module]) {
-      alert("You have already created a group for this module.");
-    } else {
-      this.openBox = true;
-    }
-  },
   fetchData: function() {
     let item={}
       //Get all the items from DB
@@ -1203,17 +1208,45 @@ export default {
       database.collection('Modules').get().then((querySnapShot)=>{
         //Loop through each item
         querySnapShot.forEach(doc=>{
-            //console.log(doc.id+"==>"+doc.data())
+            // for(var i in doc.data()) {
+            //   console.log(!Array.isArray(doc.data()[i]))
+            //   if (!Array.isArray(doc.data()[i]) && 'Group Members' in doc.data()[i] && doc.data()[i]['Group Members'].indexOf('You') > -1) {
+            //     this.newGroups.push(doc.data()[i]);
+            //     this.newGroupFormed[doc.id] = true;
+            //   }
+            // }
             currMod=doc.data()
             currMod.show=false
             currMod.id=doc.id
             this.modules.push(currMod)
         })
       })
+  },
+  checkNoGroup: function() {
+    for(var i = 0; i < this.modules.length; i++) {
+      if(this.modules[i].id == this.module) {
+        this.noGroup = this.modules[i]['NoGroup'];
+        break;
+      }
+    }
+
+  },
+  updateGroups: function() {
+    // console.log(this.modules[0]);
+    for(var mod in Object.values(this.modules)) {
+      this.newGroups[mod.id] = '';
+      this.newGroupFormed[mod.id] = false;
+      for(var group in mod) {
+        if(!Array.isArray(group) && 'Group Members' in group && group['Group Members'].indexOf('You') > -1) {
+          this.newGroups[mod.id] = group;
+        }
+      }
+    }
   }
 },
 created() {
-  this.fetchData()
+  this.fetchData();
+  this.updateGroups();
 }
 }
 </script>
