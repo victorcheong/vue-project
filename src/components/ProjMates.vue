@@ -939,7 +939,7 @@ export default {
       newGroupFormed:{},
       newGroup:{module: '', groupName:'', size:2, currGroup:['You'], newSkill: [], comment:'', compatibility:[], 
       memberStatus:['true'], members:['None'], skills:[[]], currMember:1, skills1:[], skills2:[], skills3:[]},
-      newGroups:{},
+      newGroups:[],
       currPage:'Students not in any group',
       showNotif:false
     }
@@ -1216,24 +1216,38 @@ export default {
             //   }
             // }
             currMod=doc.data()
-            currMod.show=false
             currMod.id=doc.id
             this.modules.push(currMod)
         })
-      })
+      // console.log(this.modules[0])
+      for(var mod of this.modules) {
+          this.newGroups[mod.id] = '';
+          this.newGroupFormed[mod.id] = false;
+          for(var group in mod) {
+            // if(Array.isArray(mod[group])) {
+            //   console.log(group + " " + mod[group] + " is an array" );
+            // } else if (mod[group] instanceof String) {
+            //   console.log(group + " " + mod[group] + " is a string" );
+            // }
+            if(!Array.isArray(mod[group]) && typeof mod[group] !== 'string' && mod[group] != null && 'Group Members' in mod[group] && mod[group]['Group Members'].indexOf('You') > -1) {
+              this.newGroups.push(mod[group]);
+            }
+            console.log(group)
+          }
+        }
+    })
   },
   checkNoGroup: function() {
-    for(var i = 0; i < this.modules.length; i++) {
-      if(this.modules[i].id == this.module) {
-        this.noGroup = this.modules[i]['NoGroup'];
-        break;
-      }
-    }
+    // for(var i = 0; i < this.modules.length; i++) {
+    //   if(this.modules[i].id == this.module) {
+    //     this.noGroup = this.modules[i]['NoGroup'];
+    //     break;
+    //   }
+    // }
 
   },
   updateGroups: function() {
-    // console.log(this.modules[0]);
-    for(var mod in Object.values(this.modules)) {
+    for(var mod of this.modules) {
       this.newGroups[mod.id] = '';
       this.newGroupFormed[mod.id] = false;
       for(var group in mod) {
