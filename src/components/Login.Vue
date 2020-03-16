@@ -68,4 +68,4 @@ input[type="text"]{
     padding: 8px;
     width:50%;
 }
-</style>
+</style>r
