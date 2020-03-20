@@ -12,9 +12,23 @@
         <label>Password</label>
         <input type="text" v-model.lazy="item.category"/>
         <label>Gender</label>
-        <input type="text" v-model.lazy="item.category"/>
+        <div class="form-radio">
+        <input type="radio" name="gender" id="male" checked>
+        <label2 for="male">Male</label2>
+        <input type="radio" name="gender" id="female">
+        <label2 for="female">Female</label2>
+        </div>
         <label>Faculty</label>
-        <input type="text" v-model.lazy="item.category"/>
+        <select name="faculty" id="faculty">
+                    <option value=""></option>
+                    <option value="soc">School of Computing</option>
+                    <option value="fass">Faculty of Arts and Social Sciences</option>
+										<option value="fos">Faculty of Science</option>
+										<option value="biz">NUS Business School</option>
+										<option value="foe">Faculty of Engineering</option>
+										<option value="fod">Faculty of Dentistry</option>
+										<option value="med">School of Medicine</option>
+        </select> <br>
         <label>Major</label>
         <input type="text" v-model.lazy="item.category"/>
         <br>
@@ -30,21 +44,17 @@ export default {
 
   data(){
     return{
-        msg:"Sign up",
-        User Info:{
-          Awards:{},
-          Current Modules:{},
-          Email:"",
-          Password:"",
-          Faculty:"",
-
+        msg:"Add Item",
+        item:{
+          name:'',
+          category:''
         },
         
         
         }
   },
   methods:{
-    signup:  function () {
+    login:  function () {
           //Save item to database
           database.collection('items').doc().set(this.item);
           this.item.name="";
@@ -73,7 +83,15 @@ p{
 label{
     display: inline-block;
     margin: 20px 0 10px;
-    width:50%;
+    width:30%;
+    align-content:left;
+    font-weight: bold;
+
+}
+label2{
+    display: inline-block;
+    margin: 20px 0 10px;
+    width:30%;
     align-content:left;
 
 }
