@@ -1,22 +1,4 @@
 <template>
-  <div id=app>
-    <head>
-      <title>Project Mates</title>
-    </head>
-    <h1>Create Your Own Account</h1>
-    <form id="signup">
-        <label>Name</label>
-        <input type="text" v-model.lazy="item.name" required/>
-        <label>NUS Email</label>
-        <input type="text" v-model.lazy="item.category"/>
-        <label>Password</label>
-        <input type="text" v-model.lazy="item.category"/>
-        <label>Gender</label>
-        <div class="form-radio">
-        <input type="radio" name="gender" id="male" checked>
-        <label2 for="male">Male</label2>
-        <input type="radio" name="gender" id="female">
-        <label2 for="female">Female</label2>
         </div>
         <label>Faculty</label>
         <select name="faculty" id="faculty">
@@ -26,41 +8,37 @@
 										<option value="fos">Faculty of Science</option>
 										<option value="biz">NUS Business School</option>
 										<option value="foe">Faculty of Engineering</option>
-										<option value="fod">Faculty of Dentistry</option>
-										<option value="med">School of Medicine</option>
-        </select> <br>
-        <label>Major</label>
-        <input type="text" v-model.lazy="item.category"/>
+  <div class="signup">
+    <h1>Start to Create Your Account !</h1>
+        <label>Your Email</label>
+        <input type="text" v-model="email" required/>
+        <label>Your Password</label>
+        <input type="password" v-model="password" required/>
         <br>
-        <button v-on:click.prevent="signup">Submit Form</button>
-    </form>
+        <button @click="signup">Sign Up</button>
   </div>
 </template>
 
 <script>
 
-import database from '../firebase.js'
-export default {
+import firebase from 'firebase';
 
+
+export default {
+  name:"signup",
   data(){
     return{
-        msg:"Add Item",
-        item:{
-          name:'',
-          category:''
-        },
-        
-        
-        }
+          email:'',
+          password:''
+    }
   },
   methods:{
-    login:  function () {
+    signup:  function () {
           //Save item to database
-          database.collection('items').doc().set(this.item);
-          this.item.name="";
-          this.item.category="";
-          alert("I am in the DB .... :-) Item saved successfully")
-          
+            firebase.auth().createUserWithEmailAndPassword(this.email, this.password)
+  .then(function() {
+    alert('You have created an account');
+  });
         }
   }
 }
@@ -83,15 +61,7 @@ p{
 label{
     display: inline-block;
     margin: 20px 0 10px;
-    width:30%;
-    align-content:left;
-    font-weight: bold;
-
-}
-label2{
-    display: inline-block;
-    margin: 20px 0 10px;
-    width:30%;
+    width:50%;
     align-content:left;
 
 }
