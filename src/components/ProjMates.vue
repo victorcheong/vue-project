@@ -31,7 +31,7 @@
     <br>
     <br>
     <div style="border-width:1px; border-style:solid; height:100px; display:block; background-size: 100% 100%;">   
-    Hello {{newGroups}}
+    Hello
     </div>
     <table>
       <tr>
@@ -43,7 +43,7 @@
         <td style="padding-left: 20px;">
           <select id="modules" v-model="module" style="width:auto" @change="checkNoGroup">
             <option value = '' disabled>Please select a module</option>
-            <option v-for='mod in modules' v-bind:key = mod.id>{{mod.id}}</option>
+            <option v-for='(value, mod) in modules' v-bind:key = mod>{{mod}}</option>
           </select>
         </td>
       </tr>
@@ -68,9 +68,9 @@
             <h1>Students with No Group:</h1>
             <div v-show="module=='BT3103'">
               <ol>
-                <div v-for='mod in modules' v-bind:key = mod.id>
-                  <div v-if = 'mod.id == module'>
-                    <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
+                <div v-for='(value, mod) in modules' v-bind:key = mod>
+                  <div v-if = 'mod == module'>
+                    <li v-for = 'person in modules[mod]["NoGroup"]' v-bind:key="person">
                       {{person}}
                       <a href='https://www.google.com' target="_blank">Profile</a>
                     </li>
@@ -80,9 +80,9 @@
             </div>
             <div v-show="module=='IS3103'">
               <ol>
-                <div v-for='mod in modules' v-bind:key = mod.id>
-                  <div v-if = 'mod.id == module'>
-                    <li v-for = 'person in mod["NoGroup"]' v-bind:key="person">
+                <div v-for='(value, mod) in modules' v-bind:key = mod.id>
+                  <div v-if = 'mod == module'>
+                    <li v-for = 'person in modules[mod]["NoGroup"]' v-bind:key="person">
                       {{person}}
                       <a href='https://www.google.com' target="_blank">Profile</a>
                     </li>
@@ -95,9 +95,9 @@
             <h1 style="text-align: left">Formed Project Groups: </h1>
             <div v-if="module=='BT3103'">
               <ul>
-                <div v-for='mod in modules' v-bind:key = mod>
-                  <div v-if = 'mod.id == module'>
-                    <div v-for='(group, groupName) in mod' v-bind:key = group>
+                <div v-for='(value, mod) in modules' v-bind:key = mod>
+                  <div v-if = 'mod == module'>
+                    <div v-for='(group, groupName) in modules[mod]' v-bind:key = group>
                       <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
                         <li style="text-align: left; list-style: none;">
                           <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
@@ -119,9 +119,9 @@
             </div>
             <div v-if="module=='IS3103'">
               <ul>
-                <div v-for='mod in modules' v-bind:key = mod>
-                  <div v-if = 'mod.id == module'>
-                    <div v-for='(group, groupName) in mod' v-bind:key = group>
+                <div v-for='(value, mod) in modules' v-bind:key = mod>
+                  <div v-if = 'mod == module'>
+                    <div v-for='(group, groupName) in modules[mod]' v-bind:key = group>
                       <div v-if= 'group["Group Members"] != null && group["MaxSize"] == group["Group Members"].length'>
                         <li style="text-align: left; list-style: none;">
                           <div class='group' style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
@@ -880,7 +880,7 @@ export default {
   data(){
     return {
       userInfo:[],
-      modules:[],
+      modules:{},
       hover:false,
       module: "",
       good: "",
@@ -1202,40 +1202,14 @@ export default {
             this.userInfo.push(item)
         })
       })
-
-    let currMod={}
+    let temp = {}
       //Get all the items from DB
-      database.collection('Modules').get().then((querySnapShot)=>{
-        //Loop through each item
-        querySnapShot.forEach(doc=>{
-            // for(var i in doc.data()) {
-            //   console.log(!Array.isArray(doc.data()[i]))
-            //   if (!Array.isArray(doc.data()[i]) && 'Group Members' in doc.data()[i] && doc.data()[i]['Group Members'].indexOf('You') > -1) {
-            //     this.newGroups.push(doc.data()[i]);
-            //     this.newGroupFormed[doc.id] = true;
-            //   }
-            // }
-            currMod=doc.data()
-            currMod.id=doc.id
-            this.modules.push(currMod)
+      database.collection('Modules').onSnapshot(myModules => {
+        myModules.forEach(function(module) {
+          temp[module.id] = module.data()
         })
-      // console.log(this.modules[0])
-      for(var mod of this.modules) {
-          this.newGroups[mod.id] = '';
-          this.newGroupFormed[mod.id] = false;
-          for(var group in mod) {
-            // if(Array.isArray(mod[group])) {
-            //   console.log(group + " " + mod[group] + " is an array" );
-            // } else if (mod[group] instanceof String) {
-            //   console.log(group + " " + mod[group] + " is a string" );
-            // }
-            if(!Array.isArray(mod[group]) && typeof mod[group] !== 'string' && mod[group] != null && 'Group Members' in mod[group] && mod[group]['Group Members'].indexOf('You') > -1) {
-              this.newGroups.push(mod[group]);
-            }
-            console.log(group)
-          }
-        }
-    })
+        this.modules = temp;
+      })
   },
   checkNoGroup: function() {
     // for(var i = 0; i < this.modules.length; i++) {
