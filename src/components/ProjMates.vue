@@ -15,7 +15,7 @@
             <li><a href='#forum'>My Projects</a></li>
             <li><a href='#forum'>Find Group Mates</a></li>
             <li><a href='#forum'>Forum</a></li>
-            <li @mouseover="hover = true"><a><i class="fa fa-user"></i> Peppa Pig</a></li>
+            <li @mouseover="hover = true"><a><i class="fa fa-user"></i>{{currName}}</a></li>
           </ul>
         </th>
         <div v-if='hover' style="position:absolute; right:10px; top: 60px;">
@@ -41,7 +41,7 @@
           </label>
         </td>
         <td style="padding-left: 20px;">
-          <select id="modules" v-model="module" style="width:auto" @change="checkNoGroup">
+          <select id="modules" v-model="module" style="width:auto" @change="updateGroups();">
             <option value = '' disabled>Please select a module</option>
             <option v-for='(value, mod) in modules' v-bind:key = mod>{{mod}}</option>
           </select>
@@ -53,13 +53,13 @@
         box-shadow: 1px 0.5px 1px 2.5px grey;">
           <h5>Looking for:</h5>
           <ul style="text-align: justify; list-style-type:none">
-            <li><a href="#" v-on:click ='currPage = "Students not in any group"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Students without Group</span></a></li>
+            <li><a href="#" v-on:click ='currPage = "Students not in any group";updateGroups()' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Students without Group</span></a></li>
             <br>
-            <li><a href="#" v-on:click='currPage = "Formed Project Groups"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Formed Project Groups</span></a></li>
+            <li><a href="#" v-on:click='currPage = "Formed Project Groups";updateGroups()' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Formed Project Groups</span></a></li>
             <br>
-            <li><a href="#" v-on:click='currPage = "Form a new group"; checkNoGroup' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>New Group</span></a></li>
+            <li><a href="#" v-on:click='currPage = "Form a new group";updateGroups()' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>New Group</span></a></li>
             <br>
-            <li><a href="#" v-on:click='currPage = "Join Existing Groups"' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Existing Groups</span></a></li>
+            <li><a href="#" v-on:click='currPage = "Join Existing Groups";updateGroups()' style="text-decoration:none"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i>Existing Groups</span></a></li>
           </ul>
         </div>
         <div style="position: absolute; right: 300px; text-align: left; border-color: grey; border-radius: 2px; border-width: thin; padding: 20px 20px 20px 20px;
@@ -278,588 +278,106 @@
           </div>
           <div v-show='currPage == "Join Existing Groups"' style="padding-right: 200px;">
             <h1 style="text-align: left">Join Existing Groups:</h1>
+            
             <table>
             <tr>
               <td>
-                <div style="text-align: left" v-for='team in newGroups'  v-bind:key = team>
+                <div style="text-align: left" v-for='(team, teamName) of currGroups'  v-bind:key = teamName>
                   <ul style="list-style-type:none">
-                    <li class="removebullet">
-                      <div class='group' style="text-align: center">
+                    <li class = 'removebullet'>
+                      <div class = 'group' style="text-align:center">
                         <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;list-style:none;">
-                          <h4>{{team.groupName}} ({{team.currGroup.length}}/{{team.size}}) </h4>
+                          <h4>{{teamName}} ({{team['Group Members'].length}}/{{team.MaxSize}}) </h4>
                         </div>
-                        <ul v-for='member in team.currGroup' v-bind:key = member>
-                          <div class='group-content'>
-                            <div v-if='team.currGroup.length > 1'>You <a href='https://www.google.com' target="_blank">Profile</a>
-                            </div>
-                            <li>
+                          <ul>
+                            <div class='group-content'>
+                              <li v-for='member in team["Group Members"]' v-bind:key = member>
                               {{member}} <a href='https://www.google.com' target="_blank">Profile</a>
-                            </li>
-                          </div>
-                        </ul>
-                      </div>
-                      <br>
-                      <br>
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          Team Composition:
+                              </li>
+                              <br>
+                              Team Comment: {{team['Comment']}}
+                              <br>
+                              <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px; text-align:center">
+                                Team Composition:
+                              </div>
+                              <table>
+                                <td v-for='(value, mem) in team["Vacancies"]' v-bind:key = mem style="padding-right:10px">  
+                                  <tr v-for='(value, person) in team["Vacancies"][mem]' v-bind:key = person> 
+                                      <br>
+                                      {{person}} <i class="fa fa-user" style="font-size:24px; color:green" v-show='!team["Vacancies"][mem][person]["FilledOrNot"]'></i>
+                                      <i class="fa fa-user" style="font-size:24px; color:red" v-show='team["Vacancies"][mem][person]["FilledOrNot"]'></i>
+                                      <br>
+                                      <div v-show='!team["Vacancies"][mem][person]["FilledOrNot"]'>
+                                        Skills Required:
+                                        <ul>
+                                          <li v-for='skill in team["Vacancies"][mem][person]["Skills Required"]' v-bind:key = 'skill'>{{skill}}
+                                            <i class="fa fa-check" style="font-size:24px;color:green" v-show='my_skills.indexOf(skill) > -1'></i>
+                                            <i class="fa fa-times" style="font-size:24px;color:red" v-show='my_skills.indexOf(skill) == -1'></i>
+                                          </li>
+                                        </ul>
+                                        <br>
+                                        <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
+                                        <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
+                                          <div class="vue-simple-progress-bar" v-bind:style='{width: my_compatibility[teamName][person] + "%"}'
+                                            style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;"></div>
+                                        </div>
+                                        <div class="vue-simple-progress-text"
+                                          style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
+                                          {{my_compatibility[teamName][person] + '%'}}</div>
+                                        <br>
+                                        <button v-show='my_compatibility[teamName][person] == 100' v-on:click = 'join(teamName, person)'>Click to join now</button>
+                                      </div>
+                                      <button v-show='team["Group Members"].indexOf("You") > -1 && my_compatibility[teamName][person] == 100' v-on:click = 'leave(teamName, person); updateGroups()'>Leave</button>
+                                  </tr>
+                                </td>
+                              </table>
+                            </div>
+                          </ul>
                         </div>
-                        <div class='group-content'>
-                          <table>
-                            <td>
-                              <div v-for='(mem, index) in team.skills1' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar" v-bind:style='{width: team.compatibility[index] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{team.compatibility[index] + '%'}}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td style="padding-left: 50px; vertical-align: top;">
-                              <div v-for='(mem, index) in team.skills2' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + team.skills1.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: team.compatibility[index + team.skills1.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{team.compatibility[index + team.skills1.length] + '%'}}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td style="padding-left: 50px; vertical-align: top;">
-                              <div v-for='(mem, index) in team.skills3' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + team.skills1.length + team.skills2.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: team.compatibility[index + team.skills1.length + team.skills2.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{team.compatibility[index + team.skills1.length + team.skills2.length] + '%'}}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </table>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      {{team.comment}}
                     </li>
                   </ul>
                 </div>
-                <br>
-                <div v-if="module=='bt3103'">
+
+                <div style="text-align: left" v-for='(team, teamName) of newGroups'  v-bind:key = teamName>
                   <ul style="list-style-type:none">
-                    <li style="text-align: left">
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          <h3>Group 1 ({{bt3103_grp1_teamNum}}/5)</h3>
+                    <li class = 'removebullet'>
+                      <div class = 'group' style="text-align:center">
+                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;list-style:none;">
+                          <h4>{{teamName}} ({{team['Group Members'].length}}/{{team.MaxSize}}) </h4>
                         </div>
-                        <div class='group-content'>
-                          Alan <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          Brad <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          Charlie <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          Dan <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          <p v-if='bt3103_grp1_hasJoined'>You <a href='https://www.google.com' target="_blank">Profile</a></p>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          Team Composition:
-                        </div>
-                        <div class='group-content'>
-                          <table>
-                            <td>
-                              <div v-for='(mem, index) in bt3103_grp1_skills1' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1}}
-                                <ul>
-                                  <div v-for='skill in bt3103_grp1_skills1[index]' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button v-if='bt3103_grp1_hasJoined && bt3103_grp1_joinIndex == index'
-                                  v-on:click='leave("bt3103", index, 1)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-show='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar" v-bind:style='{width: bt3103_grp1_com[index] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3103_grp1_com[index] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && bt3103_grp1_com[index] == 100'
-                                  v-on:click='join("bt3103", index, 1)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com' v-show='bt3103_grp1_com[index] < 100'>Send an email request</a>
+                          <ul>
+                            <div class='group-content'>
+                              <div v-if='team["Group Members"].length > 1'>You <a href='https://www.google.com' target="_blank">Profile</a>
                               </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in bt3103_grp1_skills2' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + bt3103_grp1_skills1.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='bt3103_grp1_hasJoined && bt3103_grp1_joinIndex == index + bt3103_grp1_skills1.length'
-                                  v-on:click='leave("bt3103", index + bt3103_grp1_skills1.length, 2)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: bt3103_grp1_com[index + bt3103_grp1_skills1.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3103_grp1_com[index + bt3103_grp1_skills1.length] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && bt3103_grp1_com[index + bt3103_grp1_skills1.length] == 100'
-                                  v-on:click='join("bt3103", index + bt3103_grp1_skills1.length, 2)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='bt3103_grp1_com[index + bt3103_grp1_skills1.length] < 100'>Send an email request</a>
+                              <li v-for='member in team["Group Members"]' v-bind:key = member>
+                              {{member}} <a href='https://www.google.com' target="_blank">Profile</a>
+                              </li>
+                              <br>
+                              Team Comment: {{team['Comment']}}
+                              <br>
+                              <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px; text-align:center">
+                                Team Composition:
                               </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in bt3103_grp1_skills3' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='bt3103_grp1_hasJoined && bt3103_grp1_joinIndex == index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length'
-                                  v-on:click='leave("bt3103", index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length, 3)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: bt3103_grp1_com[index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
+                              <table>
+                                <td v-for='(value, mem) in team["Vacancies"]' v-bind:key = mem style="padding-right:10px">  
+                                  <tr v-for='(value, person) in team["Vacancies"][mem]' v-bind:key = person> 
+                                      <br>
+                                      {{person}} <i class="fa fa-user" style="font-size:24px; color:green" v-show='!team["Vacancies"][mem][person]["FilledOrNot"]'></i>
+                                      <i class="fa fa-user" style="font-size:24px; color:red" v-show='team["Vacancies"][mem][person]["FilledOrNot"]'></i>
+                                      <br>
+                                      <div v-show='!team["Vacancies"][mem][person]["FilledOrNot"]'>
+                                        Skills Required:
+                                        <ul>
+                                          <li v-for='skill in team["Vacancies"][mem][person]["Skills Required"]' v-bind:key = 'skill'>{{skill}}</li>
+                                        </ul>
                                       </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3103_grp1_com[index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length] + '%'}}
-                                    </div>
-                                  </div>
-                                </div>
-                                <button
-                                  v-show='mem[0] != "apple" && bt3103_grp1_com[index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length] == 100'
-                                  v-on:click='join("bt3103", index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length, 3)'>Click
-                                  to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='bt3103_grp1_com[index + bt3103_grp1_skills1.length + bt3103_grp1_skills2.length] < 100'>Send
-                                  an email request</a>
-                              </div>
-                            </td>
-                          </table>
+                                  </tr>
+                                </td>
+                              </table>
+                              <br>
+                            </div>
+                          </ul>
                         </div>
-                      </div>
-                      <br>
-                      <br>
-                      We are available to meet up on Wednesday nights.
-                    </li>
-                  </ul>
-                </div>
-                <div v-if="module=='is3103'">
-                  <ul style="list-style-type:none">
-                    <li style="text-align: left">
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          <h3>Group 2 ({{is3103_grp1_teamNum}}/5) </h3>
-                        </div>
-                        <div class='group-content'>
-                          Alan <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          Brad <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          <p v-if='is3103_grp1_hasJoined'>You <a href='https://www.google.com' target="_blank">Profile</a></p>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          Team Composition:
-                        </div>
-                        <div class='group-content'>
-                          <table>
-                            <td>
-                              <div v-for='(mem, index) in is3103_grp1_skills1' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1}}
-                                <ul>
-                                  <div v-for='skill in is3103_grp1_skills1[index]' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button v-if='is3103_grp1_hasJoined && is3103_grp1_joinIndex == index'
-                                  v-on:click='leave("is3103", index, 1)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-show='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar" v-bind:style='{width: is3103_grp1_com[index] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{is3103_grp1_com[index] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && is3103_grp1_com[index] == 100'
-                                  v-on:click='join("is3103", index, 1)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com' v-show='is3103_grp1_com[index] < 100'>Send an email request</a>
-                              </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in is3103_grp1_skills2' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + is3103_grp1_skills1.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='is3103_grp1_hasJoined && is3103_grp1_joinIndex == index + is3103_grp1_skills1.length'
-                                  v-on:click='leave("is3103", index + is3103_grp1_skills1.length, 2)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: is3103_grp1_com[index + is3103_grp1_skills1.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{is3103_grp1_com[index + is3103_grp1_skills1.length] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && is3103_grp1_com[index + is3103_grp1_skills1.length] == 100'
-                                  v-on:click='join("is3103", index + is3103_grp1_skills1.length, 2)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='is3103_grp1_com[index + is3103_grp1_skills1.length] < 100'>Send an email request</a>
-                              </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in is3103_grp1_skills3' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + is3103_grp1_skills1.length + is3103_grp1_skills2.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='is3103_grp1_hasJoined && is3103_grp1_joinIndex == index + is3103_grp1_skills1.length + is3103_grp1_skills2.length'
-                                  v-on:click='leave("is3103", index + is3103_grp1_skills1.length + is3103_grp1_skills2.length, 3)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: is3103_grp1_com[index + is3103_grp1_skills1.length + is3103_grp1_skills2.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{is3103_grp1_com[index + is3103_grp1_skills1.length + is3103_grp1_skills2.length] + '%'}}
-                                    </div>
-                                  </div>
-                                </div>
-                                <button
-                                  v-show='mem[0] != "apple" && is3103_grp1_com[index + is3103_grp1_skills1.length + is3103_grp1_skills2.length] == 100'
-                                  v-on:click='join("is3103", index + is3103_grp1_skills1.length + is3103_grp1_skills2.length, 3)'>Click
-                                  to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='is3103_grp1_com[index + is3103_grp1_skills1.length + is3103_grp1_skills2.length] < 100'>Send
-                                  an email request</a>
-                              </div>
-                            </td>
-                          </table>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      We are available to meet up on Thursday nights.
-                    </li>
-                  </ul>
-                </div>
-                <div v-if="module=='bt3102'">
-                  <ul style="list-style-type:none">
-                    <li style="text-align: left">
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          <h3>Group 3 ({{bt3102_grp1_teamNum}}/5) </h3>
-                        </div>
-                        <div class='group-content'>
-                          Alan <a href='https://www.google.com' target="_blank">Profile</a>
-                          <br>
-                          <p v-if='bt3102_grp1_hasJoined'>You <a href='https://www.google.com' target="_blank">Profile</a></p>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      <div class='group'>
-                        <div style="border-radius: 25px;border: 2px solid #73AD21; padding: 10px;">
-                          Team Composition:
-                        </div>
-                        <div class='group-content'>
-                          <table>
-                            <td>
-                              <div v-for='(mem, index) in bt3102_grp1_skills1' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1}}
-                                <ul>
-                                  <div v-for='skill in bt3102_grp1_skills1[index]' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button v-if='bt3102_grp1_hasJoined && bt3102_grp1_joinIndex == index'
-                                  v-on:click='leave("bt3102", index, 1)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-show='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar" v-bind:style='{width: bt3102_grp1_com[index] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3102_grp1_com[index] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && bt3102_grp1_com[index] == 100'
-                                  v-on:click='join("bt3102", index, 1)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com' v-show='bt3102_grp1_com[index] < 100'>Send an email request</a>
-                              </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in bt3102_grp1_skills2' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + bt3102_grp1_skills1.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='bt3102_grp1_hasJoined && bt3102_grp1_joinIndex == index + bt3102_grp1_skills1.length'
-                                  v-on:click='leave("bt3102", index + bt3102_grp1_skills1.length, 2)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: bt3102_grp1_com[index + bt3102_grp1_skills1.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3102_grp1_com[index + bt3102_grp1_skills1.length] + '%'}}</div>
-                                  </div>
-                                </div>
-                                <button v-show='mem[0] != "apple" && bt3102_grp1_com[index + bt3102_grp1_skills1.length] == 100'
-                                  v-on:click='join("bt3102", index + bt3102_grp1_skills1.length, 2)'>Click to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='bt3102_grp1_com[index + bt3102_grp1_skills1.length] < 100'>Send an email request</a>
-                              </div>
-                            </td>
-                            <td style="vertical-align: top; padding-left: 50px;">
-                              <div v-for='(mem, index) in bt3102_grp1_skills3' v-bind:key = mem>
-                                <i class="fa fa-user" style="font-size:24px; color:green" v-show='mem[0] != "apple"'></i>
-                                <i class="fa fa-user" style="font-size:24px; color:red" v-show='mem[0] == "apple"'></i>
-                                Team Member {{index + 1 + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length}}
-                                <ul>
-                                  <div v-for='skill in mem' v-bind:key = skill>
-                                    <li v-if='skill != "apple"'>{{skill}} <i class="fa fa-check"
-                                        style="font-size:24px;color:green" v-if='my_skills.indexOf(skill) > -1'></i></li>
-                                  </div>
-                                </ul>
-                                <br>
-                                <button
-                                  v-if='bt3102_grp1_hasJoined && bt3102_grp1_joinIndex == index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length'
-                                  v-on:click='leave("bt3102", index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length, 3)'>Leave</button>
-                                <div class="db pt3 pb4 ph3 ph0-l relative" style="min-height: 100px;" v-if='mem[0] != "apple"'>
-                                  <div class="mb4 f6 fw6 dark-gray">Compatibility</div>
-                                  <div>
-                                    <!---->
-                                    <div class="vue-simple-progress" style="background: rgb(238, 238, 238);">
-                                      <!---->
-                                      <!---->
-                                      <div class="vue-simple-progress-bar"
-                                        v-bind:style='{width: bt3102_grp1_com[index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length] + "%"}'
-                                        style="background: rgb(33, 150, 243); height: 3px; transition: all 0.5s ease 0s;">
-                                        <!---->
-                                      </div>
-                                    </div>
-                                    <div class="vue-simple-progress-text"
-                                      style="color: rgb(34, 34, 34); font-size: 13px; text-align: center; padding-top: 4px;">
-                                      {{bt3102_grp1_com[index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length] + '%'}}
-                                    </div>
-                                  </div>
-                                </div>
-                                <button
-                                  v-show='mem[0] != "apple" && bt3102_grp1_com[index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length] == 100'
-                                  v-on:click='join("bt3102", index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length, 3)'>Click
-                                  to join now</button>
-                                <a href='mailto:abcd@google.com'
-                                  v-show='bt3102_grp1_com[index + bt3102_grp1_skills1.length + bt3102_grp1_skills2.length] < 100'>Send
-                                  an email request</a>
-                              </div>
-                            </td>
-                          </table>
-                        </div>
-                      </div>
-                      <br>
-                      <br>
-                      We are available to meet up on Friday nights.
                     </li>
                   </ul>
                 </div>
@@ -869,7 +387,6 @@
           </div>
         </div>
     </div>
-
   </div>
 </template>
 
@@ -887,49 +404,8 @@ export default {
       bad: "",
       loadMore:false,
       loadText:"Load More",
-      my_skills: ['Java', 'C++', 'Tableau'],
-      bt3103_grp1_skills1:[['Java'], ['apple']],
-      bt3103_grp1_skills1Old:[['Java'], ['apple']],
-      bt3103_grp1_new1:[['Java'], ['apple']],
-      bt3103_grp1_skills2:[['apple'], ['apple']],
-      bt3103_grp1_skills2Old:[['apple'], ['apple']],
-      bt3103_grp1_new2:[['apple'], ['apple']],
-      bt3103_grp1_skills3:[['apple']],
-      bt3103_grp1_skills3Old:[['apple']],
-      bt3103_grp1_new3:[['apple']],
-      bt3103_grp1_com:[100], 
-      bt3103_grp1_teamNum: 4,
-      bt3103_grp1_hasJoined:false,
-      bt3103_grp1_joinIndex:-1,
-      
-      is3103_grp1_skills1:[['Tableau', 'R'], ['C++']],
-      is3103_grp1_skills1Old:[['Tableau', 'R'], ['C++']],
-      is3103_grp1_new1:[['Tableau', 'R'], ['C++']],
-      is3103_grp1_skills2:[['Simulation'], ['apple']],
-      is3103_grp1_skills2Old:[['Simulation'], ['apple']],
-      is3103_grp1_new2:[['Simulation'], ['apple']],
-      is3103_grp1_skills3:[['apple']],
-      is3103_grp1_skills3Old:[['apple']],
-      is3103_grp1_new3:[['apple']],
-      is3103_grp1_com:[50, 100, 0], 
-      is3103_grp1_teamNum: 2,
-      is3103_grp1_hasJoined:false,
-      is3103_grp1_joinIndex:-1,
-
-      bt3102_grp1_skills1:[['C'], ['Ruby']],
-      bt3102_grp1_skills1Old:[['C'], ['Ruby']],
-      bt3102_grp1_new1:[['C'], ['Ruby']],
-      bt3102_grp1_skills2:[['Tableau'], ['Year 2']],
-      bt3102_grp1_skills2Old:[['Tableau'], ['Year 2']],
-      bt3102_grp1_new2:[['Tableau'], ['Year 2']],
-      bt3102_grp1_skills3:[['apple']],
-      bt3102_grp1_skills3Old:[['apple']],
-      bt3102_grp1_new3:[['apple']],
-      bt3102_grp1_com:[0, 0, 100, 0], 
-      bt3102_grp1_teamNum: 1,
-      bt3102_grp1_hasJoined:false,
-      bt3102_grp1_joinIndex:-1,
-      
+      my_skills: [],
+      currName:'',
       skill:'',
       hasNewSkill: false,
       currSkill: '',
@@ -939,19 +415,26 @@ export default {
       newGroupFormed:{},
       newGroup:{module: '', groupName:'', size:2, currGroup:['You'], newSkill: [], comment:'', compatibility:[], 
       memberStatus:['true'], members:['None'], skills:[[]], currMember:1, skills1:[], skills2:[], skills3:[]},
-      newGroups:[],
-      currPage:'Students not in any group',
-      showNotif:false
+      newGroups:{},
+      currGroups:{},
+      my_compatibility:{},
+      currPage:'Students not in any group'
     }
   },
   methods: {
     checkAvailable: function() {
-      for(var i = 0; i < this.modules.length; i++) {
-        var mod = this.modules[i];
-        for(var group in mod) {
-          if(group != 'NoGroup' && group != 'show' && group != 'id') {
-            this.taken.push(group);
-          }
+      let temp = {}
+      //Get all the items from DB
+      database.collection('Modules').onSnapshot(myModules => {
+        myModules.forEach(function(module) {
+          temp[module.id] = module.data()
+        })
+        this.modules = temp;
+      })
+      this.taken = [];
+      for(var mod in this.modules) {
+        for(var groupName in this.modules[mod]) {
+          this.taken.push(groupName)
         }
       }
       var el = this.newGroup.groupName;
@@ -1022,7 +505,7 @@ export default {
     }
   },
 
-  addGroup: function() {
+  addGroup: function() {  
     if(this.newGroup.groupName == '') {
       alert("Please fill in a group name.");
     } else if(this.newGroup.comment.length == 0) {
@@ -1041,41 +524,32 @@ export default {
         }
       }
       alert("Your group has been sucessfully created! Click the Join Existing Groups tab to see your group."); 
-      // for(var j = 0; j < this.newGroup.skills.length; j++) {
-      //   var count = 0;
-      //   for(i = 0; i < this.newGroup.skills[j].length; i++) {
-      //     var curr = this.newGroup.skills[j][i];
-      //     if(this.my_skills.indexOf(curr) > -1) {
-      //       count ++;
-      //     }
-      //   }
-      //   var compatibility = Math.round(parseFloat(count) / this.newGroup.skills[j].length * 100);
-      //   this.newGroup.module = this.module;
-      //   this.newGroup.compatibility.push(compatibility);
-      // }
-      // for(i = 0; i < this.newGroup.currGroup.length; i++) {
-      //   this.newGroup.skills.push(['apple']);
-      // }
-      // for(i = 0; i < this.newGroup.skills.length; i++) {
-      //   var skill = this.newGroup.skills[i];
-      //   if(this.newGroup.skills1.length < 2) {
-      //     this.newGroup.skills1.push(skill);
-      //   }else if(this.newGroup.skills2.length < 2) {
-      //     this.newGroup.skills2.push(skill);
-      //   }else {
-      //     this.newGroup.skills3.push(skill);
-      //   }
-      // }
       var newGroupFormat = {};
-      newGroupFormat[this.newGroup.groupName] = {'Group Members':this.newGroup['currGroup'], 'MaxSize': this.newGroup['size'], 'Vacancies':{}};
+      newGroupFormat[this.newGroup.groupName] = {'Group Members':this.newGroup['currGroup'], 'MaxSize': this.newGroup['size'], 'Vacancies':{}, 'Comment':this.newGroup.comment};
       var counter = 1;
       for(i = 0; i < this.newGroup['members'].length; i++) {
-        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter] = {};
-        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter]['FilledOrNot'] = false;
-        newGroupFormat[this.newGroup.groupName]['Vacancies']['Group Member ' + counter]['Skills Required'] = this.newGroup['members'][i]
+        if(Number.isInteger((counter - 1) / 2)) {
+          newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)] = {};
+        }
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter] = {};
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter]['FilledOrNot'] = false;
+        if(this.newGroup['members'][i].indexOf(',') > -1) {
+          newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter]['Skills Required'] = this.newGroup['members'][i].split(",");
+        } else {
+          newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter]['Skills Required'] = [this.newGroup['members'][i]];
+        }
+        counter += 1;
+      }
+      for(i = 0; i < this.newGroup['currGroup'].length; i++) {
+        if(Number.isInteger((counter - 1) / 2)) {
+          newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)] = {};
+        }
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter] = {};
+        newGroupFormat[this.newGroup.groupName]['Vacancies']['Vacancies ' + Math.floor((counter - 1) / 2)]['Group Member ' + counter]['FilledOrNot'] = true;
+        counter += 1
       }
       this.newGroupFormed[this.module] = true;
-      this.newGroups[this.module] = this.newGroup;
+      this.newGroups[this.newGroup.groupName] = this.newGroup;
       database.collection('Modules').doc(this.module).set(newGroupFormat, {merge: true});
       this.newGroup = {module: '', groupName:'', size:2, currGroup:['You'], newSkill: [], comment:'', compatibility:[], 
       memberStatus:['true'], members:['None'], skills:[[]], currMember:1, skills1:[], skills2:[], skills3:[]};
@@ -1099,109 +573,53 @@ export default {
       }
     }
   },
-  join: function(module, index, num) {
-    if(module=='bt3103') {
-      if(num == 1) {
-        this.bt3103_grp1_skills1[index][0] = 'apple';
-        this.bt3103_grp1_new1 = this.bt3103_grp1_skills1;
-      } else if(num == 2) {
-        this.bt3103_grp1_skills2[index - this.bt3103_grp1_skills1.length][0] = 'apple';
-        this.bt3103_grp1_new2 = this.bt3103_grp1_skills2;
-      } else if(num == 3) {
-        this.bt3103_grp1_skills3[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0] = 'apple';
-        this.bt3103_grp1_new3 = this.bt3103_grp1_skills3;
+  join: function(teamName, person) {
+    var temp = {}
+    for(var mod in this.modules) {
+      if(this.module == mod) {
+        for(var group in this.modules[mod]) {
+          if(group == teamName) {
+            temp[teamName] = this.modules[mod][group];
+            break;
+          }
+        }
       }
-      this.bt3103_grp1_teamNum += 1;
-      this.bt3103_grp1_hasJoined = true;
-      this.bt3103_grp1_joinIndex = index;
-    } else if(module == 'is3103') {
-      if(num == 1) {
-        this.is3103_grp1_skills1[index][0] = 'apple';
-        this.is3103_grp1_new1 = this.is3103_grp1_skills1;
-      } else if(num == 2) {
-        this.is3103_grp1_skills2[index - this.is3103_grp1_skills1.length][0] = 'apple';
-        this.is3103_grp1_new2 = this.is3103_grp1_skills2;
-      } else if(num == 3) {
-        this.is3103_grp1_skills3[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0] = 'apple';
-        this.is3103_grp1_new3 = this.is3103_grp1_skills3;
-      }
-      this.is3103_grp1_teamNum += 1;
-      this.is3103_grp1_hasJoined = true;
-      this.is3103_grp1_joinIndex = index;
-    } else if(module == 'bt3102') {
-      if(num == 1) {
-        this.bt3102_grp1_skills1[index][0] = 'apple';
-        this.bt3102_grp1_new1 = this.bt3102_grp1_skills1;
-      } else if(num == 2) {
-        this.bt3102_grp1_skills2[index - this.bt3102_grp1_skills1.length][0] = 'apple';
-        this.bt3102_grp1_new2 = this.bt3102_grp1_skills2;
-      } else if(num == 3) {
-        this.bt3102_grp1_skills3[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0] = 'apple';
-        this.bt3102_grp1_new3 = this.bt3102_grp1_skills3;
-      }
-      this.bt3102_grp1_teamNum += 1;
-      this.bt3102_grp1_hasJoined = true;
-      this.bt3102_grp1_joinIndex = index;
     }
+    temp[teamName]['Group Members'].push('You');
+    for(var index in temp[teamName]['Vacancies']) {
+      for(var mem in temp[teamName]['Vacancies'][index]) {
+        if('FilledOrNot' in temp[teamName]['Vacancies'][index][mem] && mem == person) {
+          temp[teamName]['Vacancies'][index][mem]['FilledOrNot'] = true
+          break
+        }
+      }
+    }
+    database.collection("Modules").doc(this.module).set(temp, {merge: true})
   },
-  leave: function(module, index, num) {
-    if(module=="bt3103") {
-      if(num == 1) {
-        this.bt3103_grp1_new1[index][0] = this.bt3103_grp1_skills1Old[index][0];
-        this.bt3103_grp1_skills1[index][0] = this.bt3103_grp1_skills1Old[index][0];
-      } else if(num == 2) {
-        this.bt3103_grp1_new2[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0] = this.bt3103_grp1_skills2Old[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0];
-        this.bt3103_grp1_skills2[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0] = this.bt3103_grp1_skills2Old[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0];
-      } else if(num == 3) {
-        this.bt3103_grp1_new3[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0] = this.bt3103_grp1_skills3Old[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0];
-        this.bt3103_grp1_skills3[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0] = this.bt3103_grp1_skills3Old[index - this.bt3103_grp1_skills1.length - this.bt3103_grp1_skills2.length][0];
+  leave: function(teamName, person) {
+    var temp = {}
+    for(var mod in this.modules) {
+      if(this.module == mod) {
+        for(var group in this.modules[mod]) {
+          if(group == teamName) {
+            temp[teamName] = this.modules[mod][group];
+            break;
+          }
+        }
       }
-      this.bt3103_grp1_teamNum -= 1;
-      this.bt3103_grp1_hasJoined = false;
-      this.bt3103_grp1_joinIndex = -1;
-    } else if(module=='is3103') {
-      if(num == 1) {
-        this.is3103_grp1_new1[index][0] = this.is3103_grp1_skills1Old[index][0];
-        this.is3103_grp1_skills1[index][0] = this.is3103_grp1_skills1Old[index][0];
-      } else if(num == 2) {
-        this.is3103_grp1_new2[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0] = this.is3103_grp1_skills2Old[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0];
-        this.is3103_grp1_skills2[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0] = this.is3103_grp1_skills2Old[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0];
-      } else if(num == 3) {
-        this.is3103_grp1_new3[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0] = this.is3103_grp1_skills3Old[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0];
-        this.is3103_grp1_skills3[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0] = this.is3103_grp1_skills3Old[index - this.is3103_grp1_skills1.length - this.is3103_grp1_skills2.length][0];
-      }
-      this.is3103_grp1_teamNum -= 1;
-      this.is3103_grp1_hasJoined = false;
-      this.is3103_grp1_joinIndex = -1;
-    } else if(module=='bt3102') {
-      if(num == 1) {
-        this.bt3102_grp1_new1[index][0] = this.bt3102_grp1_skills1Old[index][0];
-        this.bt3102_grp1_skills1[index][0] = this.bt3102_grp1_skills1Old[index][0];
-      } else if(num == 2) {
-        this.bt3102_grp1_new2[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0] = this.bt3102_grp1_skills2Old[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0];
-        this.bt3102_grp1_skills2[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0] = this.bt3102_grp1_skills2Old[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0];
-      } else if(num == 3) {
-        this.bt3102_grp1_new3[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0] = this.bt3102_grp1_skills3Old[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0];
-        this.bt3102_grp1_skills3[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0] = this.bt3102_grp1_skills3Old[index - this.bt3102_grp1_skills1.length - this.bt3102_grp1_skills2.length][0];
-      }
-      this.bt3102_grp1_teamNum -= 1;
-      this.bt3102_grp1_hasJoined = false;
-      this.bt3102_grp1_joinIndex = -1;
     }
+    temp[teamName]['Group Members'].pop();
+    for(var index in temp[teamName]['Vacancies']) {
+      for(var mem in temp[teamName]['Vacancies'][index]) {
+        if('FilledOrNot' in temp[teamName]['Vacancies'][index][mem] && mem == person) {
+          temp[teamName]['Vacancies'][index][mem]['FilledOrNot'] = false
+          break
+        }
+      }
+    }
+    database.collection("Modules").doc(this.module).set(temp, {merge: true})
   },
   fetchData: function() {
-    let item={}
-      //Get all the items from DB
-      database.collection('User Info').get().then((querySnapShot)=>{
-        //Loop through each item
-        querySnapShot.forEach(doc=>{
-            //console.log(doc.id+"==>"+doc.data())
-            item=doc.data()
-            item.show=false
-            item.id=doc.id
-            this.userInfo.push(item)
-        })
-      })
     let temp = {}
       //Get all the items from DB
       database.collection('Modules').onSnapshot(myModules => {
@@ -1210,23 +628,57 @@ export default {
         })
         this.modules = temp;
       })
-  },
-  checkNoGroup: function() {
-    // for(var i = 0; i < this.modules.length; i++) {
-    //   if(this.modules[i].id == this.module) {
-    //     this.noGroup = this.modules[i]['NoGroup'];
-    //     break;
-    //   }
-    // }
+
+    let temp1 = []
+    let tempName = ''
+    database.collection('User Info').onSnapshot(user => {
+      user.forEach(function(currUser) {
+        if(currUser.id == 'vcjw97@gmail.com') {
+          temp1 = currUser.data()['Skills']
+          tempName = currUser.data()['Name']
+        }
+      })
+      this.currName = tempName
+      this.my_skills = temp1;
+    })
 
   },
   updateGroups: function() {
-    for(var mod of this.modules) {
-      this.newGroups[mod.id] = '';
-      this.newGroupFormed[mod.id] = false;
-      for(var group in mod) {
-        if(!Array.isArray(group) && 'Group Members' in group && group['Group Members'].indexOf('You') > -1) {
-          this.newGroups[mod.id] = group;
+    this.newGroups = {}
+    for(let mod in this.modules) {
+      if(this.module == mod) {
+        this.noGroup = this.modules[mod]['NoGroup']
+        for(var group in this.modules[mod]) {
+          if('Group Members' in this.modules[mod][group] && this.modules[mod][group]['Group Members'].indexOf('You') > -1) {
+            this.newGroups[group] = this.modules[mod][group];  
+          }
+        }
+      }
+    }
+    this.currGroups = {}
+    for(let mod in this.modules) {
+      if(this.module == mod) {
+        for(var group in this.modules[mod]) {
+          if('Vacancies' in this.modules[mod][group] && this.modules[mod][group]['Group Members'].indexOf('You') == -1) {
+            this.currGroups[group] = this.modules[mod][group];  
+            this.my_compatibility[group] = {};
+            for(var vacancy in this.modules[mod][group]['Vacancies']) {
+              for(var member in this.modules[mod][group]['Vacancies'][vacancy]) {
+                if(!this.modules[mod][group]['Vacancies'][vacancy][member]['FilledOrNot']) {
+                  var tot = 0;
+                  var match = 0;
+                  for(var i = 0; i < this.modules[mod][group]['Vacancies'][vacancy][member]['Skills Required'].length; i++) {
+                    tot += 1;
+                    if(this.my_skills.indexOf(this.modules[mod][group]['Vacancies'][vacancy][member]['Skills Required'][i]) > -1) {
+                      match += 1;
+                    }
+                  }
+                  var compat = parseFloat(match / tot * 100 + "").toFixed(2);
+                  this.my_compatibility[group][member] = compat;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -1234,7 +686,6 @@ export default {
 },
 created() {
   this.fetchData();
-  this.updateGroups();
 }
 }
 </script>
@@ -1345,6 +796,7 @@ body {
 	position: absolute;
 	background-color: #f9f9f9;
 	width: auto;
+  height: auto;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	padding: 12px 16px;
 	z-index: 1;
