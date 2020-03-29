@@ -658,7 +658,7 @@ export default {
     this.currGroups = {}
     for(let mod in this.modules) {
       if(this.module == mod) {
-        for(var group in this.modules[mod]) {
+        for(group in this.modules[mod]) {
           if('Vacancies' in this.modules[mod][group] && this.modules[mod][group]['Group Members'].indexOf('You') == -1) {
             this.currGroups[group] = this.modules[mod][group];  
             this.my_compatibility[group] = {};
